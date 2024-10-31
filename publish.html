@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SIoT - Publish</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  </head>
+  <body>
+    <h1>Sistem Internet of Things</h1>
+    <p>Status: <b style="color: red">Terputus</b></p>
+    <p>Suhu: 32 C</p>
+    <p>Kelembaban: 87%</p>
+    <h2>Lampu</h2>
+    <button onclick="publish('on')">On</button>
+    <button onclick="publish('off')">Of</button>
+    <button onclick="publish('Error')">Error</button>
+  </body>
+
+  <script>
+    const clientId = "unix id";
+    const host = "wss://system-internet-of-things.cloud.shiftr.io:443";
+    const options = {
+      keepalive: 60,
+      clientId: clientId,
+      username: "system-internet-of-things",
+      password: "LqSqWk5Vox8oxlyF",
+      protocolId: "MQTT",
+      protocolVersion: 4,
+      clean: false,
+      reconnectPeroid: 1000,
+      reconnectTimeout: 30000,
+    };
+
+    console.log("connecting mqtt client");
+    const client = mqtt.connect(host, options);
+
+    client.on("connect", () => {
+      console.log("client connected: " + clientId);
+    });
+
+    function publish(data) {
+      client.publish("topic", data, { qos: 0, retain: false });
+    }
+  </script>
+</html>

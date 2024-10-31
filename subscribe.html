@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SIoT - Subscribe</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  </head>
+  <body>
+    <h1>Subscribe</h1>
+    <p>Status Koneksi: <span id="status" style="color: red">Terputus</span></p>
+    <p>Kelembaban Tanah: <span id="soilMoisture">-</span></p>
+    <p>Status Pompa: <span id="pumpStatus">-</span></p>
+
+    <script>
+      const clientId =
+        "web-subscriber-" + Math.random().toString(16).substr(2, 8);
+      const host = "wss://system-internet-of-things.cloud.shiftr.io:443";
+      const topicSoil = "soil/soilMoisture";
+      const topicPump = "soil/pump";
+
+      const options = {
+        keepalive: 60,
+        clientId: clientId,
+        username: "system-internet-of-things",
+        password: "LqSqWk5Vox8oxlyF",
+        protocolId: "MQTT",
+        protocolVersion: 4,
+        clean: false,
+        reconnectPeriod: 1000,
+        connectTimeout: 30 * 1000,
+      };
+
+      console.log("Menghubungkan ke broker...");
+      const client = mqtt.connect(host, options);
+
+      // Event ketika terhubung
+      client.on("connect", () => {
+        console.log("Terhubung ke broker MQTT");
+        document.getElementById("status").textContent = "Tersambung";
+        document.getElementById("status").style.color = "green";
+
+        // Subscribe ke topik kelembaban dan pompa
+        client.subscribe([topicSoil, topicPump], (err) => {
+          if (err) {
+            console.error("Gagal subscribe ke topik:", err);
+          } else {
+            console.log("Berhasil subscribe ke topik");
+          }
+        });
+      });
+
+      // Event ketika pesan diterima
+      client.on("message", (topic, message) => {
+        console.log(`Pesan diterima: ${topic} - ${message.toString()}`);
+        if (topic === topicSoil) {
+          document.getElementById(
+            "soilMoisture"
+          ).textContent = `${message} (unit sensor)`;
+        } else if (topic === topicPump) {
+          const status = message.toString() === "on" ? "Menyala" : "Mati";
+          document.getElementById("pumpStatus").textContent = status;
+        }
+      });
+
+      // Event ketika terputus
+      client.on("offline", () => {
+        console.warn("Koneksi broker terputus");
+        document.getElementById("status").textContent = "Terputus";
+        document.getElementById("status").style.color = "red";
+      });
+    </script>
+  </body>
+</html>
